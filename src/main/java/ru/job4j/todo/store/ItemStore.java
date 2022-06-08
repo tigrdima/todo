@@ -2,12 +2,12 @@ package ru.job4j.todo.store;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.query.*;
 import org.springframework.stereotype.Repository;
 import ru.job4j.todo.model.Item;
 import net.jcip.annotations.ThreadSafe;
 
 import java.util.List;
+import java.util.function.Function;
 
 @ThreadSafe
 @Repository
@@ -18,109 +18,66 @@ public class ItemStore {
         this.sf = sf;
     }
 
-    public Item add(Item item) {
+    private <T> T sessionApply(final Function<Session, T> command) {
         Session session = sf.openSession();
         session.beginTransaction();
 
-        session.save(item);
-
-        session.getTransaction().commit();
-        session.close();
-        return item;
-    }
-
-    public List<Item> findAll() {
-        Session session = sf.openSession();
-        session.beginTransaction();
-
-        List rsl = session
-                .createQuery("from Item")
-                .list();
+        T rsl = command.apply(session);
 
         session.getTransaction().commit();
         session.close();
         return rsl;
     }
 
-    public Item findById(int id) {
-        Session session = sf.openSession();
-        session.beginTransaction();
+    public Item add(Item item) {
+        return (Item) sessionApply(s -> s.save(item));
+    }
 
-        Item item = (Item) session
+    public List<Item> findAll() {
+        return sessionApply(s -> s.createQuery("from Item ").list());
+    }
+
+    public Item findById(int id) {
+        return (Item) sessionApply(s -> s
                 .createQuery("from Item i where i.id = :iId")
                 .setParameter("iId", id)
-                .uniqueResult();
-
-        session.getTransaction().commit();
-        session.close();
-
-        return item;
+                .uniqueResult());
     }
 
     public void update(Item item) {
-        Session session = sf.openSession();
-        session.beginTransaction();
-
-        session
+        sessionApply(s -> s
                 .createQuery("update Item i set i.name = :iName, i.description = :iDesc, i.done = :iDone where i.id = :iId")
                 .setParameter("iName", item.getName())
                 .setParameter("iDesc", item.getDescription())
                 .setParameter("iDone", item.getDone())
                 .setParameter("iId", item.getId())
-                .executeUpdate();
-
-        session.getTransaction().commit();
-        session.close();
+                .executeUpdate());
     }
 
     public void updateDone(Item item) {
-        Session session = sf.openSession();
-        session.beginTransaction();
-
-        session
+        sessionApply(s -> s
                 .createQuery("update Item i set i.done = :iDone where i.id = :iId")
                 .setParameter("iDone", item.getDone())
                 .setParameter("iId", item.getId())
-                .executeUpdate();
-
-        session.getTransaction().commit();
-        session.close();
+                .executeUpdate());
     }
 
     public void delete(Item item) {
-        Session session = sf.openSession();
-        session.beginTransaction();
-
-        session.delete(item);
-
-        session.getTransaction().commit();
-        session.close();
+      sessionApply(s -> s
+              .createQuery("delete from Item i where i.id = :iId")
+              .setParameter("iId", item.getId())
+              .executeUpdate());
     }
 
     public List<Item> findAllCompleted() {
-        Session session = sf.openSession();
-        session.beginTransaction();
-
-        List rsl = session.createQuery("from Item i where i.done = :iDone")
+        return sessionApply(s -> s.createQuery("from Item i where i.done = :iDone")
                 .setParameter("iDone", true)
-                .list();
-
-        session.getTransaction().commit();
-        session.close();
-        return rsl;
+                .list());
     }
 
     public List<Item> findAllNewItems() {
-        Session session = sf.openSession();
-        session.beginTransaction();
-
-        List rsl = session.createQuery("from Item i where i.done = :iDone")
-                        .setParameter("iDone", false)
-                                .list();
-
-        session.getTransaction().commit();
-        session.close();
-
-        return rsl;
+       return sessionApply(s -> s.createQuery("from Item i where i.done = :iDone")
+                .setParameter("iDone", false)
+                .list());
     }
 }
