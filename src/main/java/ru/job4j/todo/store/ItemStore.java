@@ -2,6 +2,7 @@ package ru.job4j.todo.store;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
 import ru.job4j.todo.model.Item;
 import net.jcip.annotations.ThreadSafe;
@@ -19,14 +20,18 @@ public class ItemStore {
     }
 
     private <T> T sessionApply(final Function<Session, T> command) {
-        Session session = sf.openSession();
-        session.beginTransaction();
-
-        T rsl = command.apply(session);
-
-        session.getTransaction().commit();
-        session.close();
-        return rsl;
+        final Session session = sf.openSession();
+        final Transaction tx = session.beginTransaction();
+        try {
+            T rsl = command.apply(session);
+            tx.commit();
+            return rsl;
+        } catch (final Exception e) {
+            session.getTransaction().rollback();
+            throw e;
+        } finally {
+            session.close();
+        }
     }
 
     public Item add(Item item) {
