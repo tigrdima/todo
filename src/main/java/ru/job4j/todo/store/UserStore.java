@@ -41,4 +41,5 @@ public class UserStore implements SessionTodo {
         }
         return Optional.ofNullable(user);
     }
+
 }
