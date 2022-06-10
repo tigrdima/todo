@@ -33,6 +33,17 @@
                 <a class="nav-item nav-link" th:href="@{/allItems}">Все задания</a>
                 <a class="nav-item nav-link" th:href="@{/completedItems}">Выполненные задания</a>
                 <a class="nav-item nav-link" th:href="@{/newItems}">Новые задания</a>
+                <a class="nav-item nav-link" th:if="${user.name == 'Гость'}" th:href="@{/loginPage}">
+                    <span>Пользователь</span>
+                    <span th:text="${user.name}"></span>
+                    <span> | Войти</span>
+                </a>
+                <a class="nav-item nav-link" th:if="${user.name != 'Гость'}"
+                   th:href="@{/logout}">
+                    <span>Пользователь</span>
+                    <span th:text="${user.name}"></span>
+                    <span> | Выйти</span>
+                </a>
             </div>
         </div>
     </nav>
@@ -71,6 +82,16 @@
             </tbody>
             <thead>
             <tr>
+                <th scope="col">Автор задания</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td th:text="${item.getUser()}"></td>
+            </tr>
+            </tbody>
+            <thead>
+            <tr>
                 <th scope="col">Дата создания</th>
             </tr>
             </thead>
@@ -80,17 +101,18 @@
             </tr>
             </tbody>
         </table>
-        <form class="nav-item nav-link" th:if="!${item.getDone()}" th:action="@{/formUpdateItem}"
+        <form class="nav-item nav-link" th:if="${!item.getDone() and user.getEmail().equals(item.getUser().getEmail())}" th:action="@{/formUpdateItem}"
               th:object="${item}">
             <input type="hidden" name="id" th:field="*{id}"/>
             <button type="submit" class="btn btn-primary">Редактировать</button>
         </form>
-        <form class="nav-item nav-link" th:if="!${item.getDone()}" th:action="@{/updateDoneItem}"
+        <form class="nav-item nav-link" th:if="${!item.getDone() and user.getEmail().equals(item.getUser().getEmail())}" th:action="@{/updateDoneItem}"
               th:object="${item}" method="POST">
             <input type="hidden" name="id" th:field="*{id}"/>
             <button type="submit" class="btn btn-primary">Выполнено</button>
         </form>
-        <form class="nav-item nav-link" th:action="@{/deleteItem}" th:object="${item}" method="POST">
+        <form class="nav-item nav-link" th:if="${!item.getDone() and user.getEmail().equals(item.getUser().getEmail())}" th:action="@{/deleteItem}"
+              th:object="${item}" method="POST">
             <input type="hidden" name="id" th:field="*{id}"/>
             <button type="submit" class="btn btn-primary">Удалить</button>
         </form>

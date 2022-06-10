@@ -12,41 +12,26 @@ import java.util.function.Function;
 
 @ThreadSafe
 @Repository
-public class ItemStore {
+public class ItemStore implements SessionTodo {
     private final SessionFactory sf;
 
     public ItemStore(SessionFactory sf) {
         this.sf = sf;
     }
 
-    private <T> T sessionApply(final Function<Session, T> command) {
-        final Session session = sf.openSession();
-        final Transaction tx = session.beginTransaction();
-        try {
-            T rsl = command.apply(session);
-            tx.commit();
-            return rsl;
-        } catch (final Exception e) {
-            session.getTransaction().rollback();
-            throw e;
-        } finally {
-            session.close();
-        }
-    }
-
-    public Item add(Item item) {
-        return (Item) sessionApply(s -> s.save(item));
+    public void add(Item item) {
+        sessionApply(s -> s.save(item), sf);
     }
 
     public List<Item> findAll() {
-        return sessionApply(s -> s.createQuery("from Item ").list());
+        return sessionApply(s -> s.createQuery("from Item").list(), sf);
     }
 
     public Item findById(int id) {
         return (Item) sessionApply(s -> s
                 .createQuery("from Item i where i.id = :iId")
                 .setParameter("iId", id)
-                .uniqueResult());
+                .uniqueResult(), sf);
     }
 
     public void update(Item item) {
@@ -56,7 +41,7 @@ public class ItemStore {
                 .setParameter("iDesc", item.getDescription())
                 .setParameter("iDone", item.getDone())
                 .setParameter("iId", item.getId())
-                .executeUpdate());
+                .executeUpdate(), sf);
     }
 
     public void updateDone(Item item) {
@@ -64,25 +49,25 @@ public class ItemStore {
                 .createQuery("update Item i set i.done = :iDone where i.id = :iId")
                 .setParameter("iDone", item.getDone())
                 .setParameter("iId", item.getId())
-                .executeUpdate());
+                .executeUpdate(), sf);
     }
 
     public void delete(Item item) {
       sessionApply(s -> s
               .createQuery("delete from Item i where i.id = :iId")
               .setParameter("iId", item.getId())
-              .executeUpdate());
+              .executeUpdate(), sf);
     }
 
     public List<Item> findAllCompleted() {
         return sessionApply(s -> s.createQuery("from Item i where i.done = :iDone")
                 .setParameter("iDone", true)
-                .list());
+                .list(), sf);
     }
 
     public List<Item> findAllNewItems() {
        return sessionApply(s -> s.createQuery("from Item i where i.done = :iDone")
                 .setParameter("iDone", false)
-                .list());
+                .list(), sf);
     }
 }

@@ -17,8 +17,8 @@ public class ItemService {
         this.itemStore = itemStore;
     }
 
-    public Item add(Item item) {
-        return itemStore.add(item);
+    public void add(Item item) {
+        itemStore.add(item);
     }
 
     public List<Item> findAll() {

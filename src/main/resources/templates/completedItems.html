@@ -33,6 +33,17 @@
                 <a class="nav-item nav-link" th:href="@{/allItems}">Все задания</a>
                 <a class="nav-item nav-link  active" th:href="@{/completedItems}">Выполненные задания</a>
                 <a class="nav-item nav-link" th:href="@{/newItems}">Новые задания</a>
+                <a class="nav-item nav-link" th:if="${user.name == 'Гость'}" th:href="@{/loginPage}">
+                    <span>Пользователь</span>
+                    <span th:text="${user.name}"></span>
+                    <span> | Войти</span>
+                </a>
+                <a class="nav-item nav-link" th:if="${user.name != 'Гость'}"
+                   th:href="@{/logout}">
+                    <span>Пользователь</span>
+                    <span th:text="${user.name}"></span>
+                    <span> | Выйти</span>
+                </a>
             </div>
         </div>
     </nav>
@@ -42,6 +53,7 @@
             <tr>
                 <th scope="col">Имя задания</th>
                 <th scope="col">Состояние задания</th>
+                <th scope="col">Автор задания</th>
                 <th scope="col">Дата создания</th>
             </tr>
             </thead>
@@ -54,6 +66,7 @@
                 </td>
                 <td th:if="${item.done}"  th:text="${trueDone}"></td>
                 <td th:if="!${item.done}"  th:text="${falseDone}"></td>
+                <td th:text="${item.user}"></td>
                 <td th:text="${item.created}"></td>
             </tr>
             </tbody>

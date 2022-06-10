@@ -8,8 +8,11 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import ru.job4j.todo.model.Item;
+import ru.job4j.todo.model.User;
 import ru.job4j.todo.service.ItemService;
+import ru.job4j.todo.service.UserService;
 
+import javax.servlet.http.HttpSession;
 import java.util.Date;
 
 @ThreadSafe
@@ -28,21 +31,40 @@ public class ItemController {
         model.addAttribute("falseDone", FALSE_DONE);
     }
 
+    private void userSession(Model model, HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            user = new User();
+            user.setName("Гость");
+        }
+        model.addAttribute("user", user);
+    }
+
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+        session.invalidate();
+        return "redirect:/loginPage";
+    }
+
     @GetMapping("/allItems")
-    public String index(Model model) {
+    public String index(Model model, HttpSession session) {
+        userSession(model, session);
         model.addAttribute("items", itemService.findAll());
         getDone(model);
         return "allItems";
     }
 
     @GetMapping("/formAddItem")
-    public String addItem(Model model) {
-        model.addAttribute("item", new Item());
+    public String addItem(Model model, HttpSession httpSession) {
+        User user = (User) httpSession.getAttribute("user");
+        model.addAttribute("item", new Item(user));
         return "addItem";
     }
 
     @PostMapping("/createItem")
-    public String createItem(@ModelAttribute Item item) {
+    public String createItem(@ModelAttribute Item item, HttpSession httpSession) {
+        User user = (User) httpSession.getAttribute("user");
+        item.setUser(user);
         item.setDone(false);
         item.setCreated(new Date().toString());
         itemService.add(item);
@@ -50,7 +72,8 @@ public class ItemController {
     }
 
     @GetMapping("/item/{itemId}")
-    public String formUpdatePost(Model model, @PathVariable("itemId") int id) {
+    public String formUpdatePost(Model model, HttpSession session, @PathVariable("itemId") int id) {
+        userSession(model, session);
         model.addAttribute("item", itemService.findById(id));
         getDone(model);
         return "item";
@@ -84,14 +107,16 @@ public class ItemController {
     }
 
     @GetMapping("/completedItems")
-    public String completedItems(Model model) {
+    public String completedItems(Model model, HttpSession session) {
+        userSession(model, session);
         model.addAttribute("items", itemService.findAllCompleted());
         getDone(model);
         return "/completedItems";
     }
 
     @GetMapping("/newItems")
-    public String notCompletedItems(Model model) {
+    public String notCompletedItems(Model model, HttpSession session) {
+        userSession(model, session);
         model.addAttribute("items", itemService.findAllNewItems());
         getDone(model);
         return "newItems";

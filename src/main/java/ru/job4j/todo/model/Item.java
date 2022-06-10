@@ -15,7 +15,23 @@ public class Item {
     private boolean done;
     private String created;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
     public Item() {
+    }
+
+    public Item(User user) {
+        this.user = user;
+    }
+
+    public Item(String name, String description, boolean done, String created) {
+        this.name = name;
+        this.description = description;
+        this.done = done;
+
+        this.created = created;
     }
 
     public int getId() {
@@ -58,6 +74,14 @@ public class Item {
         this.created = created;
     }
 
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -67,11 +91,11 @@ public class Item {
             return false;
         }
         Item item = (Item) o;
-        return id == item.id;
+        return id == item.id && done == item.done && name.equals(item.name) && description.equals(item.description) && created.equals(item.created) && user.equals(item.user);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(id, name, description, done, created, user);
     }
 }
