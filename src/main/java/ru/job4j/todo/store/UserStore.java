@@ -27,15 +27,11 @@ public class UserStore implements SessionTodo {
 
     public Optional<User> findUserByEmailAndPwd(String email, String password) {
         Optional<User> user;
-        try {
              user =  sessionApply(s -> s
                     .createQuery("from User u where u.email = :uEmail and u.password = :uPass")
                     .setParameter("uEmail", email)
                     .setParameter("uPass", password)
                     .uniqueResultOptional(), sf);
-        } catch (Exception e) {
-            return Optional.empty();
-        }
         return user;
     }
 
