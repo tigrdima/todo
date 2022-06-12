@@ -35,12 +35,12 @@ public class ItemStore implements SessionTodo {
     }
 
     public List<Item> findAll() {
-        return sessionApply(s -> s.createQuery("from Item").list(), sf);
+        return sessionApply(s -> s.createQuery("select distinct i from Item i join fetch i.categories").list(), sf);
     }
 
     public Item findById(int id) {
         return (Item) sessionApply(s -> s
-                .createQuery("from Item i where i.id = :iId")
+                .createQuery("select distinct i from Item i join fetch i.categories where i.id = :iId")
                 .setParameter("iId", id)
                 .uniqueResult(), sf);
     }
@@ -71,13 +71,13 @@ public class ItemStore implements SessionTodo {
     }
 
     public List<Item> findAllCompleted() {
-        return sessionApply(s -> s.createQuery("from Item i where i.done = :iDone")
+        return sessionApply(s -> s.createQuery("select distinct i from Item i join fetch i.categories where i.done = :iDone")
                 .setParameter("iDone", true)
                 .list(), sf);
     }
 
     public List<Item> findAllNewItems() {
-        return sessionApply(s -> s.createQuery("from Item i where i.done = :iDone")
+        return sessionApply(s -> s.createQuery("select distinct i from Item i join fetch i.categories where i.done = :iDone")
                 .setParameter("iDone", false)
                 .list(), sf);
     }
