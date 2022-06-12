@@ -4,12 +4,10 @@ import net.jcip.annotations.ThreadSafe;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import ru.job4j.todo.model.Category;
 import ru.job4j.todo.model.Item;
 import ru.job4j.todo.model.User;
 import ru.job4j.todo.service.CategoryService;
 import ru.job4j.todo.service.ItemService;
-import ru.job4j.todo.service.UserService;
 
 import javax.servlet.http.HttpSession;
 import java.util.Date;
@@ -69,7 +67,7 @@ public class ItemController {
         User user = (User) httpSession.getAttribute("user");
         item.setUser(user);
         item.setDone(false);
-        item.setCreated(new Date().toString());
+        item.setCreated(new Date());
         itemService.add(item, categoryId);
         return "redirect:allItems";
     }
@@ -90,7 +88,7 @@ public class ItemController {
 
     @PostMapping("/updateItem")
     public String updateItem(@ModelAttribute Item item) {
-        item.setCreated(new Date().toString());
+        item.setCreated(new Date());
         item.setDone(false);
         itemService.update(item);
         return "redirect:newItems";
