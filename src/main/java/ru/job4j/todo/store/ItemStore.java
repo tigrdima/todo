@@ -4,9 +4,11 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
+import ru.job4j.todo.model.Category;
 import ru.job4j.todo.model.Item;
 import net.jcip.annotations.ThreadSafe;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.function.Function;
 
@@ -19,8 +21,17 @@ public class ItemStore implements SessionTodo {
         this.sf = sf;
     }
 
-    public void add(Item item) {
-        sessionApply(s -> s.save(item), sf);
+    public void add(Item item, List<String> categoryId) {
+        sessionApply(s -> {
+                for (String id : categoryId) {
+                    Category category = (Category) s.createQuery("from Category c where id = :cId")
+                            .setParameter("cId", Integer.parseInt(id))
+                            .uniqueResult();
+                    item.getCategories().add(category);
+                }
+            s.save(item);
+            return item;
+        }, sf);
     }
 
     public List<Item> findAll() {
@@ -53,10 +64,10 @@ public class ItemStore implements SessionTodo {
     }
 
     public void delete(Item item) {
-      sessionApply(s -> s
-              .createQuery("delete from Item i where i.id = :iId")
-              .setParameter("iId", item.getId())
-              .executeUpdate(), sf);
+        sessionApply(s -> s
+                .createQuery("delete from Item i where i.id = :iId")
+                .setParameter("iId", item.getId())
+                .executeUpdate(), sf);
     }
 
     public List<Item> findAllCompleted() {
@@ -66,7 +77,7 @@ public class ItemStore implements SessionTodo {
     }
 
     public List<Item> findAllNewItems() {
-       return sessionApply(s -> s.createQuery("from Item i where i.done = :iDone")
+        return sessionApply(s -> s.createQuery("from Item i where i.done = :iDone")
                 .setParameter("iDone", false)
                 .list(), sf);
     }

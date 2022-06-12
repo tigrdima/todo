@@ -3,27 +3,29 @@ package ru.job4j.todo.control;
 import net.jcip.annotations.ThreadSafe;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
+import ru.job4j.todo.model.Category;
 import ru.job4j.todo.model.Item;
 import ru.job4j.todo.model.User;
+import ru.job4j.todo.service.CategoryService;
 import ru.job4j.todo.service.ItemService;
 import ru.job4j.todo.service.UserService;
 
 import javax.servlet.http.HttpSession;
 import java.util.Date;
+import java.util.List;
 
 @ThreadSafe
 @Controller
 public class ItemController {
     private final ItemService itemService;
+    private final CategoryService categoryService;
     private static final String TRUE_DONE = "Выполненная";
     private static final String FALSE_DONE = "Невыполненная";
 
-    public ItemController(ItemService itemService) {
+    public ItemController(ItemService itemService, CategoryService categoryService) {
         this.itemService = itemService;
+        this.categoryService = categoryService;
     }
 
     private void getDone(Model model) {
@@ -58,16 +60,17 @@ public class ItemController {
     public String addItem(Model model, HttpSession httpSession) {
         User user = (User) httpSession.getAttribute("user");
         model.addAttribute("item", new Item(user));
+        model.addAttribute("categories", categoryService.findAll());
         return "addItem";
     }
 
     @PostMapping("/createItem")
-    public String createItem(@ModelAttribute Item item, HttpSession httpSession) {
+    public String createItem(@ModelAttribute Item item, @RequestParam("category.id") List<String> categoryId, HttpSession httpSession) {
         User user = (User) httpSession.getAttribute("user");
         item.setUser(user);
         item.setDone(false);
         item.setCreated(new Date().toString());
-        itemService.add(item);
+        itemService.add(item, categoryId);
         return "redirect:allItems";
     }
 

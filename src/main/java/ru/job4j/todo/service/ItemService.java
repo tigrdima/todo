@@ -3,6 +3,7 @@ package ru.job4j.todo.service;
 import net.jcip.annotations.ThreadSafe;
 import org.springframework.stereotype.Service;
 import ru.job4j.todo.model.Item;
+import ru.job4j.todo.store.CategoryStore;
 import ru.job4j.todo.store.ItemStore;
 
 
@@ -17,8 +18,8 @@ public class ItemService {
         this.itemStore = itemStore;
     }
 
-    public void add(Item item) {
-        itemStore.add(item);
+    public void add(Item item, List<String> categoryId) {
+        itemStore.add(item, categoryId);
     }
 
     public List<Item> findAll() {
